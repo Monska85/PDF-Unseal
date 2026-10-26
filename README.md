@@ -58,7 +58,7 @@ A local build has no embedded manifest, so copy `cmd/pdf-unseal/pdf-unseal.exe.m
 
 ## Releasing
 
-Push a tag such as `v1.0.0`. GitHub Actions runs GoReleaser, which publishes `pdf-unseal-<version>.exe`, `THIRD_PARTY_LICENSES.txt` and `checksums.txt` to a GitHub release.
+Push a tag such as `v1.0.0`. GitHub Actions runs GoReleaser, which publishes `pdf-unseal-<version>.exe`, `THIRD_PARTY_LICENSES.txt` and `checksums.txt` to a GitHub release. A second job wraps that exe in `pdf-unseal-<version>.msix` and attaches it to the same release, ready to upload to the Microsoft Store in Partner Center. The Store signs the package; it is not meant for direct installation. The Store only accepts versions 1.0.0 and later without suffixes, so tags such as `v0.2.0`, `v1.2.0-rc1` or `v1.2.0+build1` get no package.
 
 ## Translations
 

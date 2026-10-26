@@ -27,3 +27,6 @@ Desktop.ini
 # Generated at release time
 *.syso
 /cmd/pdf-unseal/notices/THIRD_PARTY_LICENSES.txt
+
+# Store packages
+*.msix

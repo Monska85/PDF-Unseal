@@ -24,3 +24,32 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # Store package built around the released exe, which already embeds manifest, icon and version info.
+  msix:
+    needs: release
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      # The Store accepts only Major.Minor.Patch with a nonzero major and parts up to 65535,
+      # so v0.x, prerelease and build-metadata tags get no package.
+      - name: Check Store version
+        id: version
+        run: |
+          if ($env:TAG -match '^v([1-9][0-9]*\.[0-9]+\.[0-9]+)$' -and -not ($Matches[1].Split('.') | Where-Object { [int64]$_ -gt 65535 })) {
+            "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Output "::notice::$env:TAG is not a Store version (1.0.0 or later, parts up to 65535, no suffix); skipping the MSIX package."
+          }
+      - if: steps.version.outputs.version
+        uses: actions/checkout@v7
+      - name: Download released exe
+        if: steps.version.outputs.version
+        run: gh release download $env:TAG --pattern "pdf-unseal-${{ steps.version.outputs.version }}.exe" --output pdf-unseal.exe
+      - name: Build MSIX
+        if: steps.version.outputs.version
+        run: ./scripts/build-msix.ps1 -Exe pdf-unseal.exe -Version ${{ steps.version.outputs.version }} -Out "pdf-unseal-${{ steps.version.outputs.version }}.msix"
+      - name: Attach to release
+        if: steps.version.outputs.version
+        run: gh release upload $env:TAG "pdf-unseal-${{ steps.version.outputs.version }}.msix"

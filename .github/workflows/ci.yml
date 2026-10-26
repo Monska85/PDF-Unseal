@@ -32,3 +32,18 @@ jobs:
           version: "~> v2"
           args: release --snapshot --clean
 
+  msix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # Same resources as the release build, so the packaged exe can start.
+      - name: Embed manifest and icon
+        run: go run github.com/tc-hib/go-winres@v0.3.3 make --in cmd/pdf-unseal/winres/winres.json --out cmd/pdf-unseal/rsrc --arch amd64
+      - name: Build exe
+        run: go build -trimpath -ldflags="-s -w -H windowsgui" -o pdf-unseal.exe ./cmd/pdf-unseal
+      # Any version the Store accepts; the first part cannot be 0.
+      - name: Build MSIX
+        run: ./scripts/build-msix.ps1 -Exe pdf-unseal.exe -Version 1.0.0 -Out pdf-unseal.msix
