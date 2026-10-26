@@ -1,0 +1,2 @@
+This is a development build. Release builds include the license texts of all
+third-party software compiled into PDF Unseal.

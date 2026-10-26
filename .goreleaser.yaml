@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: pdf-unseal
+
+before:
+  hooks:
+    - go mod download
+    # Manifest and version info for the exe; walk needs the manifest to start.
+    - >-
+      go run github.com/tc-hib/go-winres@v0.3.3 make
+      --in cmd/pdf-unseal/winres/winres.json
+      --out cmd/pdf-unseal/rsrc
+      --arch amd64
+      --file-version {{ .Major }}.{{ .Minor }}.{{ .Patch }}.0
+      --product-version {{ .Version }}
+    # Embedded in the exe (Help > About) and attached to the release.
+    - ./scripts/third-party-licenses.sh cmd/pdf-unseal/notices/THIRD_PARTY_LICENSES.txt
+
+builds:
+  - main: ./cmd/pdf-unseal
+    binary: pdf-unseal
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -H windowsgui -X main.version={{ .Version }}
+
+archives:
+  - formats: [binary]
+    # Must differ from the build output name, or GoReleaser lists the exe twice.
+    name_template: "{{ .ProjectName }}-{{ .Version }}"
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  extra_files:
+    - glob: ./cmd/pdf-unseal/notices/THIRD_PARTY_LICENSES.txt
+
+changelog:
+  sort: asc

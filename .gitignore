@@ -1,0 +1,29 @@
+# Build output
+/pdf-unseal
+*.exe
+/dist/
+
+# Go test and profiling artifacts
+*.test
+*.out
+*.prof
+coverage.*
+
+# Go workspace files (local multi-module setups)
+go.work
+go.work.sum
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generated at release time
+*.syso
+/cmd/pdf-unseal/notices/THIRD_PARTY_LICENSES.txt
