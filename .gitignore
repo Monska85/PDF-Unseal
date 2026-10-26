@@ -30,3 +30,6 @@ Desktop.ini
 
 # Store packages
 *.msix
+
+# Store screenshots output
+/screenshots/

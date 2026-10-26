@@ -1,0 +1,31 @@
+name: Store screenshots
+
+# Run by hand from the Actions tab; the screenshots are uploaded as an artifact.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # The manifest is needed for the app to start; the icon shows in the title bar.
+      - name: Embed manifest and icon
+        run: go run github.com/tc-hib/go-winres@v0.3.3 make --in cmd/pdf-unseal/winres/winres.json --out cmd/pdf-unseal/rsrc --arch amd64
+      - name: Build exe
+        run: go build -trimpath -ldflags="-s -w -H windowsgui" -o pdf-unseal.exe ./cmd/pdf-unseal
+      - name: English
+        run: ./scripts/screenshots.ps1 -Exe pdf-unseal.exe -Pdf "packaging/screenshots/Annual report.pdf" -Lang en -OutDir screenshots/en
+      - name: Italian
+        run: ./scripts/screenshots.ps1 -Exe pdf-unseal.exe -Pdf "packaging/screenshots/Relazione annuale.pdf" -Lang it -OutDir screenshots/it
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: store-screenshots
+          path: screenshots/
