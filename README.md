@@ -64,6 +64,10 @@ Push a tag such as `v1.0.0`. GitHub Actions runs GoReleaser, which publishes `pd
 
 Translations live in `internal/i18n/locales`, one JSON file per language. To add one, copy `en.json` to `<code>.json` and translate the values; the tests check that every file has the same keys.
 
+## Privacy
+
+PDF Unseal works offline and collects no data. See the [privacy policy](PRIVACY.md).
+
 ## License
 
 [MIT](LICENSE) © Daniele M.
