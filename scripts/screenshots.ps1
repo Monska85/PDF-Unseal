@@ -5,7 +5,7 @@
 param(
     [Parameter(Mandatory)] [string] $Exe,      # build with the embedded manifest
     [Parameter(Mandatory)] [string] $Pdf,      # sample PDF protected with $Password
-    [Parameter(Mandatory)] [string] $Lang,     # en or it
+    [Parameter(Mandatory)] [string] $Lang,     # a locale code, such as en or it
     [Parameter(Mandatory)] [string] $OutDir,
     [string] $Password = 'example'
 )
@@ -72,11 +72,11 @@ public static class Win {
 }
 '@
 
-$titles = @{
-    en = @{ main = 'PDF Unseal'; save = 'Save unsealed PDF' }
-    it = @{ main = 'PDF Unseal'; save = 'Salva il PDF sbloccato' }
-}[$Lang]
-if (-not $titles) { throw "Unsupported language '$Lang'" }
+# Window titles come from the app's translations, so a new language needs no change here.
+$locale = Join-Path $PSScriptRoot "../internal/i18n/locales/$Lang.json"
+if (-not (Test-Path $locale)) { throw "Unsupported language '$Lang': $locale not found" }
+$strings = Get-Content $locale -Raw -Encoding UTF8 | ConvertFrom-Json
+$titles = @{ main = 'PDF Unseal'; open = $strings.'open.title'; save = $strings.'save.title' }
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
@@ -153,10 +153,10 @@ try {
     [void][Win]::SetWindowPos($main, [IntPtr]::Zero, 62, 40, 900, 660, 0x0040)
     Capture $main '1-drop'
 
-    # File > Open, type the path, confirm.
+    # File > Open, wait for the dialog so no keystroke is lost, type the path, confirm.
     Send $main '^o'
-    Start-Sleep -Seconds 2
-    [System.Windows.Forms.SendKeys]::SendWait((Escape $inputPdf))
+    $open = Wait-Window $procId $titles.open
+    Send $open (Escape $inputPdf)
     [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 
     # The password dialog is titled with the file name.

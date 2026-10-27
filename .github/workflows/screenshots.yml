@@ -1,15 +1,26 @@
-name: Store screenshots
+name: Screenshots
 
-# Run by hand from the Actions tab; the screenshots are uploaded as an artifact.
+# Takes the Store screenshots in every language and uploads them as one artifact, "screenshots",
+# with a folder per language. Called by CI and Release.
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      retention-days:
+        description: Days to keep the screenshots artifact (1 is the minimum).
+        type: number
+        default: 1
 
 permissions:
   contents: read
 
 jobs:
-  screenshots:
+  capture:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a language code here when its translation is added to internal/i18n/locales.
+        lang: [en, it]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -20,12 +31,23 @@ jobs:
         run: go run github.com/tc-hib/go-winres@v0.3.3 make --in cmd/pdf-unseal/winres/winres.json --out cmd/pdf-unseal/rsrc --arch amd64
       - name: Build exe
         run: go build -trimpath -ldflags="-s -w -H windowsgui" -o pdf-unseal.exe ./cmd/pdf-unseal
-      - name: English
-        run: ./scripts/screenshots.ps1 -Exe pdf-unseal.exe -Pdf "packaging/screenshots/Annual report.pdf" -Lang en -OutDir screenshots/en
-      - name: Italian
-        run: ./scripts/screenshots.ps1 -Exe pdf-unseal.exe -Pdf "packaging/screenshots/Relazione annuale.pdf" -Lang it -OutDir screenshots/it
+      - name: Take screenshots
+        run: ./scripts/screenshots.ps1 -Exe pdf-unseal.exe -Pdf "packaging/screenshots/Annual report.pdf" -Lang ${{ matrix.lang }} -OutDir screenshots/${{ matrix.lang }}
+      # Uploaded on failure too, so the debug capture can be inspected.
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: store-screenshots
+          name: screenshots-${{ matrix.lang }}
           path: screenshots/
+          retention-days: ${{ inputs.retention-days }}
+
+  merge:
+    needs: capture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v7
+        with:
+          name: screenshots
+          pattern: screenshots-*
+          delete-merged: true
+          retention-days: ${{ inputs.retention-days }}

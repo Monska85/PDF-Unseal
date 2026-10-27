@@ -59,3 +59,8 @@ jobs:
       # Any version the Store accepts; the first part cannot be 0.
       - name: Build MSIX
         run: ./scripts/build-msix.ps1 -Exe pdf-unseal.exe -Version 1.0.0 -Out pdf-unseal.msix
+
+  screenshots:
+    uses: ./.github/workflows/screenshots.yml
+    with:
+      retention-days: 1

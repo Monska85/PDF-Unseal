@@ -53,3 +53,26 @@ jobs:
       - name: Attach to release
         if: steps.version.outputs.version
         run: gh release upload $env:TAG "pdf-unseal-${{ steps.version.outputs.version }}.msix"
+
+  screenshots:
+    uses: ./.github/workflows/screenshots.yml
+    with:
+      retention-days: 1
+
+  # Store screenshots attached to the release as one zip with a folder per language.
+  screenshots-zip:
+    needs: [release, screenshots]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: screenshots
+          path: screenshots
+      - name: Attach to release
+        run: |
+          zip="pdf-unseal-${TAG#v}-screenshots.zip"
+          (cd screenshots && zip -r "../$zip" .)
+          gh release upload "$TAG" "$zip" --repo "$GITHUB_REPOSITORY"

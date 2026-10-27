@@ -58,11 +58,11 @@ A local build has no embedded manifest, so copy `cmd/pdf-unseal/pdf-unseal.exe.m
 
 ## Releasing
 
-Push a tag such as `v1.0.0`. GitHub Actions runs GoReleaser, which publishes `pdf-unseal-<version>.exe`, `THIRD_PARTY_LICENSES.txt` and `checksums.txt` to a GitHub release. A second job wraps that exe in `pdf-unseal-<version>.msix` and attaches it to the same release, ready to upload to the Microsoft Store in Partner Center. The Store signs the package; it is not meant for direct installation. The Store only accepts versions 1.0.0 and later without suffixes, so tags such as `v0.2.0`, `v1.2.0-rc1` or `v1.2.0+build1` get no package.
+Push a tag such as `v1.0.0`. GitHub Actions runs GoReleaser, which publishes `pdf-unseal-<version>.exe`, `THIRD_PARTY_LICENSES.txt` and `checksums.txt` to a GitHub release. A second job wraps that exe in `pdf-unseal-<version>.msix` and attaches it to the same release, ready to upload to the Microsoft Store in Partner Center. The Store signs the package; it is not meant for direct installation. The Store only accepts versions 1.0.0 and later without suffixes, so tags such as `v0.2.0`, `v1.2.0-rc1` or `v1.2.0+build1` get no package. Every release also gets `pdf-unseal-<version>-screenshots.zip`, the Store screenshots with one folder per language. CI takes the same screenshots on every push to `main` and every pull request, and keeps them as a `screenshots` artifact for 1 day.
 
 ## Translations
 
-Translations live in `internal/i18n/locales`, one JSON file per language. To add one, copy `en.json` to `<code>.json` and translate the values; the tests check that every file has the same keys.
+Translations live in `internal/i18n/locales`, one JSON file per language. To add one, copy `en.json` to `<code>.json` and translate the values; the tests check that every file has the same keys. Then add the code to the language matrix in `.github/workflows/screenshots.yml`, so the Store screenshots include it.
 
 ## Privacy
 
