@@ -69,10 +69,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: screenshots
-          path: screenshots
+          name: screenshots-zip
       - name: Attach to release
         run: |
           zip="pdf-unseal-${TAG#v}-screenshots.zip"
-          (cd screenshots && zip -r "../$zip" .)
+          mv pdf-unseal-screenshots.zip "$zip"
           gh release upload "$TAG" "$zip" --repo "$GITHUB_REPOSITORY"
